@@ -60,10 +60,8 @@ public class AuthorController {
 
     @GetMapping("/log in")
     public ResponseEntity<?> logIn(@RequestBody String[] info){
-       Author author = authorService.logIn(info);
-        if(author!=null)
-            return ResponseEntity.status(200).body(new ApiResponse("logged in successfully to "+author.getUsername()));
-        return ResponseEntity.status(400).body(new ApiResponse("wrong username or password"));
+       authorService.logIn(info);
+            return ResponseEntity.status(200).body(new ApiResponse("logged in successfully"));
     }
 
 }
