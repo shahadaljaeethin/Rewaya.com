@@ -19,34 +19,24 @@ public class NovelController {
     private final NovelService novelService;
 
     @PostMapping("/publish")
-    public ResponseEntity<?> createNovel(@RequestBody @Valid Novel novel, Errors errors) {
-        if(errors.hasErrors()) return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
-
-        String result = novelService.createNovel(novel);
-        if (result.equals("Published! :)"))
-            return ResponseEntity.status(200).body(new ApiResponse(result));
-        return ResponseEntity.status(400).body(new ApiResponse(result));
+    public ResponseEntity<?> createNovel(@RequestBody @Valid Novel novel) {
+     novelService.createNovel(novel);
+     return ResponseEntity.status(200).body(new ApiResponse("Published! :)"));
     }
 
     @GetMapping("/get")
     public List<Novel> getAll() { return novelService.getAll(); }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateNovel(@PathVariable Integer id,@RequestBody @Valid Novel upd, Errors errors) {
-        if(errors.hasErrors()) return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
-
-
-        String result = novelService.updateNovel(id, upd);
-        if (result.equals("updated"))
-            return ResponseEntity.status(200).body(new ApiResponse(result));
-        return ResponseEntity.status(400).body(new ApiResponse(result));
+    public ResponseEntity<?> updateNovel(@PathVariable Integer id,@RequestBody @Valid Novel upd) {
+        novelService.updateNovel(id, upd);
+       return ResponseEntity.status(200).body(new ApiResponse("updated"));
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteNovel(@PathVariable Integer id) {
-           if (novelService.deleteNovel(id))
+           novelService.deleteNovel(id);
             return ResponseEntity.status(200).body(new ApiResponse("deleted"));
-        return ResponseEntity.status(400).body(new ApiResponse("Novel not found"));
     }
 
 //====================================
@@ -55,20 +45,15 @@ public class NovelController {
     @PutMapping("/like/{userId}/{novelId}")
     public ResponseEntity<?> sendLike(@PathVariable Integer userId, @PathVariable Integer novelId) {
 
-        String result = novelService.sendLike(userId, novelId);
-        if (result.equals("Liked :)"))
-            return ResponseEntity.status(200).body(new ApiResponse(result));
-        return ResponseEntity.status(400).body(new ApiResponse(result));
+        novelService.sendLike(userId, novelId);
+        return ResponseEntity.status(200).body(new ApiResponse("Liked :)"));
     }
 
 
     @PutMapping("/dislike/{userId}/{novelId}")
     public ResponseEntity<?> disLike(@PathVariable Integer userId, @PathVariable Integer novelId) {
-
-        String result = novelService.removeLike(userId, novelId);
-        if (result.equals("Like removed"))
-            return ResponseEntity.status(200).body(new ApiResponse(result));
-        return ResponseEntity.status(400).body(new ApiResponse(result));
+       novelService.removeLike(userId, novelId);
+       return ResponseEntity.status(200).body(new ApiResponse("Like removed"));
     }
 
 
@@ -103,27 +88,20 @@ public class NovelController {
 //    }
     @PutMapping("/set complete/{novelId}")
     public ResponseEntity<?> setComplete(@PathVariable Integer novelId){
-    String out = novelService.setComplete(novelId);
-        if(out.equals("novel set to completed successfully"))
-            return ResponseEntity.status(200).body(out);
-        return ResponseEntity.status(400).body(out);
+   novelService.setComplete(novelId);
+            return ResponseEntity.status(200).body(new ApiResponse("novel set to completed successfully"));
     }
 
     @PutMapping("/undo complete/{novelId}")
     public ResponseEntity<?> undoComplete(@PathVariable Integer novelId){
-        String out = novelService.undoComplete(novelId);
-        if(out.equals("novel set to not completed successfully"))
-            return ResponseEntity.status(200).body(out);
-        return ResponseEntity.status(400).body(out);
+        novelService.undoComplete(novelId);
+            return ResponseEntity.status(200).body(new ApiResponse("novel set to not completed successfully"));
     }
 
     @GetMapping("/smart search/{query}")
     public ResponseEntity<?> smartSearch(@PathVariable String query){
         List<Novel> res = novelService.smartSearch(query);
-        if(res==null) return ResponseEntity.status(400).body(new ApiResponse("no novel found"));
-
         return ResponseEntity.status(200).body(res);
-
     }
 }
 

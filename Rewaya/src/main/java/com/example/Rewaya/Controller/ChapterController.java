@@ -20,13 +20,9 @@ public class ChapterController {
 //-
 
     @PostMapping("/publish")
-    public ResponseEntity<?> publishChapter(@RequestBody @Valid Chapter chapter, Errors errors){
-        if(errors.hasErrors()) return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
-
-
-        String result = chapterService.publishChapter(chapter);
-        if(result.equals("Chapter published! :)")) return ResponseEntity.status(200).body(new ApiResponse(result));
-        return ResponseEntity.status(400).body(new ApiResponse(result));
+    public ResponseEntity<?> publishChapter(@RequestBody @Valid Chapter chapter){
+         chapterService.publishChapter(chapter);
+         return ResponseEntity.status(200).body(new ApiResponse("Chapter published! :)"));
 
     }
 
@@ -34,43 +30,36 @@ public class ChapterController {
     public ResponseEntity<?> getAll(){return ResponseEntity.status(200).body(chapterService.getAll());}
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateChapter(@PathVariable Integer id,@RequestBody @Valid Chapter chapter,Errors errors){
-        if(errors.hasErrors()) return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
+    public ResponseEntity<?> updateChapter(@PathVariable Integer id,@RequestBody @Valid Chapter chapter){
         //-
-        String result = chapterService.updateChapter(id, chapter);
-        if(result.equals("updated")) return ResponseEntity.status(200).body(new ApiResponse(result));
-        return ResponseEntity.status(400).body(new ApiResponse(result));
+        chapterService.updateChapter(id, chapter);
+       return ResponseEntity.status(200).body(new ApiResponse("updated"));
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteChapter(@PathVariable Integer id){
 
-        if(chapterService.deleteChapter(id)) return ResponseEntity.status(200).body(new ApiResponse("deleted"));
-        return ResponseEntity.status(400).body(new ApiResponse("chapter not found"));
+        chapterService.deleteChapter(id);
+    return ResponseEntity.status(200).body(new ApiResponse("deleted"));
     }
 
     //EEP =================================================
 
     @PutMapping("/read/{userId}/{id}")
     public ResponseEntity<?> readChapter(@PathVariable Integer id,@PathVariable Integer userId){
-        Object ch = chapterService.readChapter(id,userId);
-        if(ch instanceof Chapter ) return ResponseEntity.status(200).body(ch);
-        return ResponseEntity.status(400).body(ch);
+     return ResponseEntity.status(200).body(chapterService.readChapter(id,userId));
     }
 
     //EEP
     @GetMapping("/novel chapters/{novelId}")
     public ResponseEntity<?> getAlLChapOfNovel(@PathVariable Integer novelId){
         List<Chapter> chapters = chapterService.getAlLChapOfNovel(novelId);
-        if(chapters!=null) return ResponseEntity.status(200).body(chapters);
-        return ResponseEntity.status(400).body(new ApiResponse("Novel not found"));
+         return ResponseEntity.status(200).body(chapters);
     }
 
     @PostMapping("/improve")
-    public ResponseEntity<?> improveChapter(@RequestBody @Valid Chapter chapter,Errors errors){
-if (errors.hasErrors()) return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
-
-return ResponseEntity.status(200).body(chapterService.improveChapter(chapter));
+    public ResponseEntity<?> improveChapter(@RequestBody @Valid Chapter chapter){
+    return ResponseEntity.status(200).body(chapterService.improveChapter(chapter));
 
     }
 

@@ -20,8 +20,8 @@ public class Meeting{
     private Integer id;
 
     @NotEmpty(message = "enter meeting title")
-    @Size(min=8,max=30,message = "length of title is 8-30 range")
-    @Column(columnDefinition = "varchar(30) not null")
+    @Size(min=8,max=39,message = "length of title is 8-39 range")
+    @Column(columnDefinition = "varchar(39) not null")
     private String title;
 
     @NotNull(message = "enter the start time")

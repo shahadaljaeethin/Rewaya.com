@@ -19,9 +19,7 @@ public class AuthorController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerAuthor(@RequestBody @Valid Author author, Errors errors){
-        if(errors.hasErrors()) return ResponseEntity.status(400).body(new ApiResponse(errors.getFieldError().getDefaultMessage()));
-
+    public ResponseEntity<?> registerAuthor(@RequestBody @Valid Author author){
         authorService.registerAuthor(author);
         return ResponseEntity.status(200).body(new ApiResponse("registered successfully, we will contact you soon to activate your account"));
 
@@ -31,38 +29,29 @@ public class AuthorController {
     public ResponseEntity<?> getAll(){return ResponseEntity.status(200).body(authorService.getAll());}
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateAuthor(@PathVariable Integer id,@RequestBody @Valid Author upd, Errors errors){
-        if(errors.hasErrors()) return ResponseEntity.status(400).body(new ApiResponse(errors.getFieldError().getDefaultMessage()));
+    public ResponseEntity<?> updateAuthor(@PathVariable Integer id,@RequestBody @Valid Author upd){
+        authorService.updateAuthor(id, upd);
+      return ResponseEntity.status(200).body(new ApiResponse("author updated"));
 
-
-        String result = authorService.updateAuthor(id, upd);
-        if(result.equals("updated")) return ResponseEntity.status(200).body(new ApiResponse(result));
-
-        return ResponseEntity.status(400).body(new ApiResponse(result));
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteAuthor(@PathVariable Integer id){
 
-        if(authorService.deleteAuthor(id))
+        authorService.deleteAuthor(id);
          return ResponseEntity.status(200).body(new ApiResponse("Author deleted"));
-        return ResponseEntity.status(400).body(new ApiResponse("Author not found :("));
     }
     //==============================
 
     @PutMapping("/activate/{admin}/{authId}")
     public ResponseEntity<?> activateAuthor(@PathVariable Integer admin,@PathVariable Integer authId){
-    String res = authorService.activateAuth(admin,authId);
-    if(res.equals("Account Activated! :)"))
-        return ResponseEntity.status(200).body(new ApiResponse(res));
-    return ResponseEntity.status(400).body(new ApiResponse(res));
+        authorService.activateAuth(admin,authId);
+        return ResponseEntity.status(200).body(new ApiResponse("Account Activated! :)"));
     }
     @PutMapping("/freeze/{admin}/{authId}")
     public ResponseEntity<?> freezeAuthor(@PathVariable Integer admin,@PathVariable Integer authId){
-        String res = authorService.freezeAuth(admin,authId);
-        if(res.equals("Account froze successfully"))
-            return ResponseEntity.status(200).body(new ApiResponse(res));
-        return ResponseEntity.status(400).body(new ApiResponse(res));
+         authorService.freezeAuth(admin,authId);
+         return ResponseEntity.status(200).body(new ApiResponse("Account froze successfully"));
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.Rewaya.Controller;
 
+import com.example.Rewaya.Api.ApiResponse;
 import com.example.Rewaya.Model.JoinRequest;
 import com.example.Rewaya.Service.JoinRequestService;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +17,9 @@ public class JoinRequestController {
     private final JoinRequestService joinRequestService;
 
     @PostMapping("/send")
-    public ResponseEntity<?> sendRequest(@RequestBody @Valid JoinRequest jr, Errors errors){
-        if(errors.hasErrors()) return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
-
+    public ResponseEntity<?> sendRequest(@RequestBody @Valid JoinRequest jr){
         String result = joinRequestService.sendRequest(jr);
-        if(result.startsWith("your request is approved") || result.startsWith("Request sent"))
-            return ResponseEntity.status(200).body(result);
-
-        return ResponseEntity.status(400).body(result);
-
+         return ResponseEntity.status(200).body(result);
     }
 
     @GetMapping("/get")
@@ -33,50 +28,41 @@ public class JoinRequestController {
                                     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateJoinRequest(@PathVariable Integer id,@RequestBody @Valid JoinRequest edit,Errors errors){
-        if(errors.hasErrors()) return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
-
-
-        if(joinRequestService.updateJoinRequest(id, edit)) return ResponseEntity.status(200).body("updated");
-
-        return ResponseEntity.status(400).body("request not found");
+    public ResponseEntity<?> updateJoinRequest(@PathVariable Integer id,@RequestBody @Valid JoinRequest edit){
+        joinRequestService.updateJoinRequest(id, edit) ;
+        return ResponseEntity.status(200).body("updated");
     }
 
     @DeleteMapping("/cancel/{id}")
-    public ResponseEntity<?> cancelJr(@PathVariable Integer id){
-        if(joinRequestService.cancelJr(id)) return ResponseEntity.status(200).body("join request canceled");
-        return ResponseEntity.status(400).body("join request not found");}
+    public ResponseEntity<?> cancelJr(@PathVariable Integer id) {
+        joinRequestService.cancelJr(id);
+        return ResponseEntity.status(200).body("join request canceled");
+    }
 //================================================================================================================================\\
 
     @PutMapping("/approve request/{authorId}/{jrId}")
     public ResponseEntity<?> approveJoinRequest(@PathVariable Integer jrId, @PathVariable Integer authorId)
     {
-        String result = joinRequestService.approveRequest(jrId, authorId);
-        if(result.contains("approved")) return ResponseEntity.status(200).body(result);
-        return ResponseEntity.status(400).body(result);
+       joinRequestService.approveRequest(jrId, authorId);
+       return ResponseEntity.status(200).body(new ApiResponse("requets approved"));
     }
 
 
     @PutMapping("/reject request/{authorId}/{jrId}")
     public ResponseEntity<?> rejectJoinRequest(@PathVariable Integer jrId, @PathVariable Integer authorId)
     {
-        String result = joinRequestService.rejectRequest(jrId, authorId);
-        if(result.contains("rejected")) return ResponseEntity.status(200).body(result);
-        return ResponseEntity.status(400).body(result);
+        joinRequestService.rejectRequest(jrId, authorId);
+      return ResponseEntity.status(200).body(new ApiResponse("request rejected"));
     }
 
     @GetMapping("/my approved requests/{userId}")
     public ResponseEntity<?> myApprovedRequest(@PathVariable Integer userId)
     {
-        var list = joinRequestService.myApprovedRequest(userId);
-        if(list != null) return ResponseEntity.status(200).body(list);
-        return ResponseEntity.status(400).body("user not found");
+         return ResponseEntity.status(200).body(joinRequestService.myApprovedRequest(userId));
     }
 
     @GetMapping("/my requests/{userId}")
     public ResponseEntity<?> allJoinReqOfMine(@PathVariable Integer userId){
-        var list = joinRequestService.allJoinReqOfMine(userId);
-        if(list != null) return ResponseEntity.status(200).body(list);
-        return ResponseEntity.status(400).body("user not found");
+         return ResponseEntity.status(200).body(joinRequestService.allJoinReqOfMine(userId));
     }
 }

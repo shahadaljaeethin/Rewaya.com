@@ -1,10 +1,7 @@
 package com.example.Rewaya.Service;
 
-import com.example.Rewaya.Api.ApiResponse;
-import com.example.Rewaya.Api.ApiResponseFeed;
-import com.example.Rewaya.Model.Novel;
+import com.example.Rewaya.Api.ApiException;
 import com.example.Rewaya.Model.User;
-import com.example.Rewaya.Repository.NovelRepository;
 import com.example.Rewaya.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,10 +31,10 @@ private final UserRepository userRepository;
     public List<User> getAll(){
         return userRepository.findAll();}
 
-    public boolean updateUser(Integer id,User newInfo){
+    public void updateUser(Integer id,User newInfo){
 
         User user = userRepository.findUserById(id);
-        if(user==null) return false;
+        if(user==null)throw new ApiException("user not found");
 
         user.setName(newInfo.getName());
         user.setUsername(newInfo.getUsername());
@@ -50,17 +47,14 @@ private final UserRepository userRepository;
 
 
         userRepository.save(user);
-        return true;
-
     }
 
-    public boolean deleteUser(Integer id){
+    public void deleteUser(Integer id){
 
         User user = userRepository.findUserById(id);
-        if(user==null) return false;
+        if(user==null) throw new ApiException("user not found");
 
         userRepository.delete(user);
-        return true;
     }
 
 
@@ -89,22 +83,21 @@ private final UserRepository userRepository;
             //==
             return userRepository.findUserByUsernameAndPassword(username, password);
             }
-        catch (Exception e){return null;}
+        catch (Exception e){throw new ApiException("password or username is wrong");}
 
     }
 
-    public String addBio(String aboutMe,Integer id){
+    public void addBio(String aboutMe,Integer id){
     User user = userRepository.findUserById(id);
-    if(user==null) return "Userr not found";
-    if(aboutMe.length()>500) return "bio too long";
+    if(user==null) throw new ApiException("user not found");
+    if(aboutMe.length()>500) throw new ApiException("bio too long");
     user.setAboutMe(aboutMe);
-    return "Bio updated";
     }
 
-    public String addToFavCategory(Integer id,String category){
+    public void  addToFavCategory(Integer id,String category){
 
         User user = userRepository.findUserById(id);
-        if(user==null) return "user not found";
+        if(user==null) throw new ApiException("user not found");
 
         String[] cate = {"Fantasy","SciFi","Romance","Drama","Action","Horror","Mystery","Thriller","Historical","Comedy","YoungAdult","Psychological","Social","Detective","Adventure","Philosophical"};
         for(String c:cate){
@@ -115,18 +108,17 @@ private final UserRepository userRepository;
             favCat.add(category);
             user.setFavoriteCategories(favCat);
             userRepository.save(user);
-            return "added";
-
                 }
 
         }
-       return "invalid category";
+        throw new ApiException( "invalid category" );
+
     }
 
-    public String removeFavCate(Integer id,String category) {
+    public void removeFavCate(Integer id,String category) {
 
         User user = userRepository.findUserById(id);
-        if (user == null) return "user not found";
+        if (user == null) throw new ApiException("user not found");
 
         ArrayList<String> fav = user.getFavoriteCategories();
         for(String cate:fav) {
@@ -134,11 +126,10 @@ private final UserRepository userRepository;
                 fav.remove(cate);
                 user.setFavoriteCategories(fav);
                 userRepository.save(user);
-                return "removed";
             }
 
         }
-        return "category not found in list";
+        throw new ApiException( "category not found in list" );
     }
 
 

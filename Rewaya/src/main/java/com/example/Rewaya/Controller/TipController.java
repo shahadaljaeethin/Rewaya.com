@@ -19,51 +19,36 @@ public class TipController {
     private final TipService tipService;
 
     @PostMapping("/post")
-    public ResponseEntity<?> postTip(@RequestBody @Valid Tip tip, Errors errors) {
-        if(errors.hasErrors()) return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
-
-
-        String result = tipService.postTip(tip);
-        if (result.equals("Posted :) thank you for helping novelist community!"))
-            return ResponseEntity.status(200).body(new ApiResponse(result));
-        return ResponseEntity.status(400).body(new ApiResponse(result));
+    public ResponseEntity<?> postTip(@RequestBody @Valid Tip tip) {
+         tipService.postTip(tip);
+         return ResponseEntity.status(200).body(new ApiResponse("Posted :) thank you for helping novelist community!"));
     }
 
     @GetMapping("/get")
     public List<Tip> getAll() {return tipService.getAll();}
 
     @PutMapping("/update tip/{id}")
-    public ResponseEntity<?> updateTip(@PathVariable Integer id,@RequestBody @Valid Tip upd,Errors errors) {
-        if(errors.hasErrors()) return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
-
-        String result = tipService.updateTip(id, upd);
-        if (result.equals("updated"))
-            return ResponseEntity.status(200).body(new ApiResponse(result));
-        return ResponseEntity.status(400).body(new ApiResponse(result));
+    public ResponseEntity<?> updateTip(@PathVariable Integer id,@RequestBody @Valid Tip upd) {
+       tipService.updateTip(id, upd);
+         return ResponseEntity.status(200).body(new ApiResponse("updated"));
     }
 
     @DeleteMapping("/delete tip/{id}")
     public ResponseEntity<?> deleteTip(@PathVariable Integer id) {
-
-        if (tipService.deleteTip(id))
+        tipService.deleteTip(id);
             return ResponseEntity.status(200).body(new ApiResponse("deleted"));
-        return ResponseEntity.status(400).body(new ApiResponse("Tip not found"));
     }
 
     @PutMapping("/like/{userId}/{tipId}")
     public ResponseEntity<?> sendLike(@PathVariable Integer userId,@PathVariable Integer tipId) {
-        String result = tipService.sendLike(userId, tipId);
-        if (result.equals("Liked :)"))
-            return ResponseEntity.status(200).body(new ApiResponse(result));
-        return ResponseEntity.status(400).body(new ApiResponse(result));
+       tipService.sendLike(userId, tipId);
+        return ResponseEntity.status(200).body(new ApiResponse("liked :)"));
     }
 
     @PutMapping("/dislike/{userId}/{tipId}")
     public ResponseEntity<?> disLike(@PathVariable Integer userId,@PathVariable Integer tipId) {
-        String result = tipService.removeLike(userId, tipId);
-        if (result.equals("Like removed"))
-            return ResponseEntity.status(200).body(new ApiResponse(result));
-        return ResponseEntity.status(400).body(new ApiResponse(result));
+        tipService.removeLike(userId, tipId);
+        return ResponseEntity.status(200).body(new ApiResponse("Like removed"));
     }
 
     @GetMapping("/my favorite tips/{userId}")

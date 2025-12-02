@@ -1,6 +1,7 @@
 package com.example.Rewaya.Service;
 
 
+import com.example.Rewaya.Api.ApiException;
 import com.example.Rewaya.Api.ApiResponse;
 import com.example.Rewaya.Model.Author;
 import com.example.Rewaya.Model.Chapter;
@@ -27,12 +28,12 @@ public class ChapterService {
     private  final  AiService aiService;
 //====================================================
 
-    public String publishChapter(Chapter ch){
+    public void publishChapter(Chapter ch){
 
         Novel nvl = novelRepository.findNovelById(ch.getNovelId());
-        if(nvl==null) return "Novel not found";
-        if(!authorRepository.findAuthorById(nvl.getAuthorId()).getActive()) return "Author is unActive currently";
-        if(nvl.getIsCompleted()) return "this novel is completed, edit novel status first to add new chapters";
+        if(nvl==null) throw new ApiException("Novel not found");
+        if(!authorRepository.findAuthorById(nvl.getAuthorId()).getActive()) throw new ApiException("Author is unActive currently");
+        if(nvl.getIsCompleted()) throw new ApiException("this novel is completed, edit novel status first to add new chapters");
 //========================================
 
         ch.setPublishDate(LocalDate.now());
@@ -42,45 +43,40 @@ public class ChapterService {
        ch.setChapterNumber(lastChap+1);
        ch.setViews(0); //it has no views yet
        chapterRepository.save(ch);
-       return "Chapter published! :)";
-
     }
 
     public List<Chapter> getAll(){return chapterRepository.findAll();}
 
 
-    public String updateChapter(Integer id,Chapter upd){
+    public void updateChapter(Integer id,Chapter upd){
 
         Chapter chapter = chapterRepository.findChapterById(id);
-        if(chapter==null) return "Chapter not found";
+        if(chapter==null) throw new ApiException("Chapter not found");
 
         //end of check
         chapter.setTitle(upd.getTitle());
         chapter.setContent(upd.getContent());
         chapterRepository.save(chapter);
-        return "updated";
-
     }
 
-    public boolean deleteChapter(Integer id){
+    public void deleteChapter(Integer id){
         Chapter chapter = chapterRepository.findChapterById(id);
-        if(chapter==null) return false;
+        if(chapter==null) throw new ApiException("chapter not found");
 
         chapterRepository.delete(chapter);
-        return true;
     }
 //============================================================================================EEP
 
-    public Object readChapter(Integer id, Integer userId){
+    public Chapter readChapter(Integer id, Integer userId){
 
         Chapter ch = chapterRepository.findChapterById(id);
-        if(ch==null) return new   ApiResponse("novel not found");;
+        if(ch==null) throw new ApiException("novel not found");;
 
         User user = userRepository.findUserById(userId);
-        if(user==null) return new ApiResponse("user not found");
+        if(user==null) throw new ApiException("user not found");
 
         Novel novel = novelRepository.findNovelById(ch.getNovelId());
-        if(user.getAge() < novel.getAgeCategory()) return new ApiResponse("your age is not suitable with this Novel");
+        if(user.getAge() < novel.getAgeCategory())throw new ApiException("your age is not suitable with this Novel");
 
         ch.setViews(ch.getViews()+1);
         chapterRepository.save(ch);
@@ -89,9 +85,8 @@ public class ChapterService {
     }
 
     public List<Chapter> getAlLChapOfNovel(Integer novelId){
-        //needs fix
         Novel novel = novelRepository.findNovelById(novelId);
-        if(novel==null) return null; //novel not found
+        if(novel==null)  throw new ApiException("novel not found"); //novel not found
 
         return chapterRepository.findChapterByNovelId(novelId);
 
@@ -109,7 +104,8 @@ public class ChapterService {
                 ", this is the chapter: "
                 +prompt;
 
-        return aiService.askAI(prompt);
+        prompt =  aiService.askAI(prompt);
+        return prompt+" (this chapter improved by AI)";
     }
 
 

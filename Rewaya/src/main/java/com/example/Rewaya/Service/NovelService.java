@@ -1,8 +1,7 @@
 package com.example.Rewaya.Service;
 
 
-import com.example.Rewaya.Api.ApiResponse;
-import com.example.Rewaya.Api.ApiResponseFeed;
+import com.example.Rewaya.Api.ApiException;
 import com.example.Rewaya.Model.*;
 import com.example.Rewaya.Repository.*;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -25,11 +23,11 @@ private final UserRepository userRepository;
 
 
 
-    public String createNovel(Novel novel){
+    public void createNovel(Novel novel){
 
         Author auth = authorRepository.findAuthorById(novel.getAuthorId());
-        if(auth==null) return "Author not found";
-        if(!auth.getActive()) return "your account is not approved yet :(";
+        if(auth==null) throw new ApiException("Author not found");
+        if(!auth.getActive()) throw new ApiException("your account is not approved yet :(");
 
         //the website has 3 category age +13 +16 +18
         if(novel.getAgeCategory()<16) novel.setAgeCategory(13);
@@ -41,22 +39,21 @@ private final UserRepository userRepository;
         novel.setIsCompleted(false);
         novel.setPublishDate(LocalDate.now());
         novelRepository.save(novel);
-        return "Published! :)";
 
     }
 
     public List<Novel> getAll(){return novelRepository.findAll();}
 
 
-    public String updateNovel(Integer id,Novel upd){
+    public void updateNovel(Integer id,Novel upd){
 
         Author author = authorRepository.findAuthorById(upd.getAuthorId());
-        if(author==null) return "Author not found";
+        if(author==null) throw new ApiException("Author not found");
 
-        if(!author.getActive()) return "Author is unActive";
+        if(!author.getActive()) throw new ApiException("Author is unActive");
 
         Novel novel = novelRepository.findNovelById(id);
-        if(novel==null) return "Novel not found";
+        if(novel==null) throw new ApiException("Novel not found");
         //end of check
 
 
@@ -65,13 +62,11 @@ private final UserRepository userRepository;
        novel.setCategories(upd.getCategories());
        novel.setIsCompleted(upd.getIsCompleted());
        novelRepository.save(novel);
-        return "updated";
-
     }
 
-    public boolean deleteNovel(Integer id){
+    public void deleteNovel(Integer id){
         Novel novel = novelRepository.findNovelById(id);
-        if(novel==null) return false;
+        if(novel==null) throw new ApiException("novel not found");
 
         //delete all chapters of this novel if any
         List<Chapter> chapters = chapterRepository.findChapterByNovelId(id);
@@ -81,45 +76,41 @@ private final UserRepository userRepository;
 
         //now delete the novel
         novelRepository.delete(novel);
-        return true;
     }
 
 //-----------------------E N D   OF  C R U Ds------------------------------------
 
 
 
-    public String sendLike(Integer userId, Integer novelId){
+    public void sendLike(Integer userId, Integer novelId){
 
         Novel novel = novelRepository.findNovelById(novelId);
-        if(novel==null) return "novel not found";
+        if(novel==null) throw new ApiException("novel not found");
         User user = userRepository.findUserById(userId);
-        if(user==null) return "user not found";
+        if(user==null) throw new ApiException("user not found");
 //         -------------------------------------        \\
         ArrayList<Integer> likes = novel.getLikes();
-        if(likes.contains(userId)) return "you already have like on this Novel";
+        if(likes.contains(userId)) throw new ApiException("you already have like on this Novel");
 
         likes.add(userId);
         novel.setLikes(likes);
         novelRepository.save(novel);
-        return "Liked :)";
-
     }
 
 
-    public String removeLike(Integer userId, Integer novelId){
+    public void removeLike(Integer userId, Integer novelId){
 
         Novel novel = novelRepository.findNovelById(novelId);
-        if(novel==null) return "novel not found";
+        if(novel==null) throw new ApiException("novel not found");
         User user = userRepository.findUserById(userId);
-        if(user==null) return "user not found";
+        if(user==null) throw new ApiException("user not found");
 //         -------------------------------------        \\
         ArrayList<Integer> likes = novel.getLikes();
-        if(!likes.contains(userId)) return "you are not having a like on this Novel already";
+        if(!likes.contains(userId)) throw new ApiException("you are not having a like on this Novel already");
 
         likes.remove(userId);
         novel.setLikes(likes);
         novelRepository.save(novel);
-        return "Like removed";
 
     }
 
@@ -135,32 +126,31 @@ private final UserRepository userRepository;
 
 
 
-         public String setComplete(Integer novelId){
+         public void setComplete(Integer novelId){
 
             Novel novel = novelRepository.findNovelById(novelId);
-            if(novel==null) return "novel not found";
+            if(novel==null) throw new ApiException("novel not found");
 
-            if(novel.getIsCompleted()) return "this novel is already completed";
+            if(novel.getIsCompleted()) throw new ApiException("this novel is already completed");
 
 
-            if(chapterRepository.findChapterByNovelId(novelId).isEmpty()) return "add at least one chapter to complete the novel";
+            if(chapterRepository.findChapterByNovelId(novelId).isEmpty()) throw new ApiException("add at least one chapter to complete the novel");
 
             novel.setIsCompleted(true);
             novelRepository.save(novel);
-            return "novel set to completed successfully";
+
 
          }
-    public String undoComplete(Integer novelId){
+    public void undoComplete(Integer novelId){
 
         Novel novel = novelRepository.findNovelById(novelId);
-        if(novel==null) return "novel not found";
+        if(novel==null) throw new ApiException("novel not found");
 
-        if(!novel.getIsCompleted()) return "this novel is already NOT completed";
+        if(!novel.getIsCompleted()) throw new ApiException("this novel is already NOT completed");
 
 
         novel.setIsCompleted(false);
         novelRepository.save(novel);
-        return "novel set to not completed successfully";
 
     }
     public ArrayList<Novel> smartSearch(String query){
@@ -184,7 +174,7 @@ private final UserRepository userRepository;
 
         //get the answer and turn it into novel list (search one by one)
          String result =  aiService.askAI(prompt);
-         if(result.equals("-1")) return null; //no novel seems like it
+         if(result.equals("-1")) return new ArrayList<>(); //no novel seems like it
         ArrayList<Novel> search = new ArrayList<>();
 
         String trim;

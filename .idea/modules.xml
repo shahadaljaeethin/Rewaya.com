@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Rewaya.iml" filepath="$PROJECT_DIR$/.idea/Rewaya.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Rewaya/Rewaya.iml" filepath="$PROJECT_DIR$/Rewaya/Rewaya.iml" />
     </modules>
   </component>
 </project>

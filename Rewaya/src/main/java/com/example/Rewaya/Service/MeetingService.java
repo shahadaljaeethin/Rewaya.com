@@ -1,5 +1,6 @@
 package com.example.Rewaya.Service;
 
+import com.example.Rewaya.Api.ApiException;
 import com.example.Rewaya.Api.ApiResponse;
 import com.example.Rewaya.Model.Author;
 import com.example.Rewaya.Model.JoinRequest;
@@ -25,24 +26,23 @@ public class MeetingService {
     private final UserRepository userRepository;
 
 
-    public String announceMeeting(Meeting meeting){
+    public void announceMeeting(Meeting meeting){
         Author author = authorRepository.findAuthorById(meeting.getAuthorId());
-        if(author==null) return "author not found";
-        if(!author.getActive()) return "author account not activate yet :(";
-        if(meeting.getEndDate().isBefore(meeting.getStartDate())) return "End time should be after start date";
+        if(author==null)  throw new ApiException("author not found");
+        if(!author.getActive())  throw new ApiException( "author account not activate yet :(" );
+        if(meeting.getEndDate().isBefore(meeting.getStartDate()))  throw new ApiException( "End time should be after start date" );
 
         meeting.setListeners(new ArrayList<>());
         meetingRepository.save(meeting);
-        return "meeting announced :) thank you for supporting community";
     }
 
     public List<Meeting> allMeeting(){return meetingRepository.findAll();}
 
-    public String updateMeeting(Integer id,Meeting edit){
+    public void updateMeeting(Integer id,Meeting edit){
         Meeting meeting = meetingRepository.findMeetingById(id);
-        if(meeting==null) return "meeting not found";
+        if(meeting==null) throw new ApiException( "meeting not found" );
 
-        if(edit.getEndDate().isBefore(edit.getStartDate())) return "End time should be after start date";
+        if(edit.getEndDate().isBefore(edit.getStartDate())) throw new ApiException( "End time should be after start date" );
 
         //===
         meeting.setStartDate(edit.getStartDate());
@@ -51,15 +51,13 @@ public class MeetingService {
         meeting.setLinkURL(edit.getLinkURL());
 
         meetingRepository.save(meeting);
-        return "updated";
 
     }
 
-    public boolean cancelMeeting(Integer id){
+    public void cancelMeeting(Integer id){
         Meeting meeting = meetingRepository.findMeetingById(id);
-        if(meeting==null) return false;
+        if(meeting==null)throw new ApiException("meeting not found");
         meetingRepository.delete(meeting);
-        return true;
     }
 
     //===================< E N D of C R U D >========================================< Start E.E.P >====================\\
@@ -76,17 +74,17 @@ public class MeetingService {
 
     public List<Meeting> myMeetings(Integer auth){
         Author author = authorRepository.findAuthorById(auth);
-        if(author==null) return null;
+        if(author==null) throw new ApiException("author not found");
     return meetingRepository.findMeetingByAuthorId(auth);
     }
 
 
-    public Object getLink( Integer jr){
+    public Meeting getLink( Integer jr){
 
         JoinRequest request = joinRequestRepository.findJoinRequestById(jr);
-        if(request==null) return new ApiResponse("request not found");
+        if(request==null) throw new ApiException("request not found");
 
-        if(!request.getStatus().equals("approved")) return new ApiResponse("you don't have permission to enter the meeting!");
+        if(!request.getStatus().equals("approved")) throw new ApiException("you don't have permission to enter the meeting!");
         return meetingRepository.findMeetingById(request.getMeetingId());
     }
 

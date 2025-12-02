@@ -1,5 +1,6 @@
 package com.example.Rewaya.Service;
 
+import com.example.Rewaya.Api.ApiException;
 import com.example.Rewaya.Model.*;
 import com.example.Rewaya.Repository.AuthorRepository;
 import com.example.Rewaya.Repository.TipRepository;
@@ -20,38 +21,35 @@ public class TipService {
 //==============================================================
 
 
-    public String postTip(Tip tip){
+    public void postTip(Tip tip){
 
         Author author = authorRepository.findAuthorById(tip.getAuthorId());
-        if(author==null) return "author not found";
-        if(!author.getActive()) return "your account is unActive currently :(";
+        if(author==null) throw new ApiException("author not found");
+        if(!author.getActive()) throw new ApiException("your account is unActive currently :(");
 
         tip.setLikes(new ArrayList<>());
         tip.setPublishDate(LocalDate.now());
         tipRepository.save(tip);
-        return "Posted :) thank you for helping novelist community!";
 
     }
 
     public List<Tip> getAll(){return tipRepository.findAll();}
 
 
-    public String updateTip(Integer id,Tip upd){
+    public void updateTip(Integer id,Tip upd){
 
         Tip tip = tipRepository.findTipById(id);
-        if(tip==null) return "tip not found";
+        if(tip==null) throw new ApiException("tip not found");
 
 
        tip.setContent(upd.getContent());
-        return "updated";
 
     }
 
-    public boolean deleteTip(Integer id){
+    public void deleteTip(Integer id){
         Tip tip = tipRepository.findTipById(id);
-        if(tip==null) return false;
+        if(tip==null) throw new ApiException("tip not found");
         tipRepository.delete(tip);
-        return true;
     }
 
 /*=========================================================================================================
@@ -62,40 +60,36 @@ public class TipService {
  */
 
 
-    public String sendLike(Integer userId, Integer tipId){
+    public void sendLike(Integer userId, Integer tipId){
 
         Tip tip = tipRepository.findTipById(tipId);
-        if(tip==null) return "tip not found";
+        if(tip==null) throw new ApiException("tip not found");
         User user = userRepository.findUserById(userId);
-        if(user==null) return "user not found";
+        if(user==null) throw new ApiException("user not found");
 //=====================
 
          ArrayList<Integer> likes = tip.getLikes();
-         if(likes.contains(userId)) return "you already send like on this tip before";
+         if(likes.contains(userId)) throw new ApiException( "you already send like on this tip before");
 
         likes.add(userId);
         tip.setLikes(likes);
         tipRepository.save(tip);
-        return "Liked :)";
-
     }
 
 
-    public String removeLike(Integer userId, Integer tipId){
+    public void removeLike(Integer userId, Integer tipId){
         Tip tip = tipRepository.findTipById(tipId);
-        if(tip==null) return "tip not found";
+        if(tip==null) throw new ApiException("tip not found");
         User user = userRepository.findUserById(userId);
-        if(user==null) return "user not found";
+        if(user==null) throw new ApiException("user not found");
         //====================================================
 //         -------------------------------------        \\
         ArrayList<Integer> likes = tip.getLikes();
-        if(!likes.contains(userId)) return "you are not having a like on this tip already";
+        if(!likes.contains(userId)) throw new ApiException("you are not having a like on this tip already");
 
         likes.remove(userId);
         tip.setLikes(likes);
         tipRepository.save(tip);
-        return "Like removed";
-
     }
 
 

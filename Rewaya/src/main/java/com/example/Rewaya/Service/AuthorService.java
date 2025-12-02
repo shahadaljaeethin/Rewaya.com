@@ -1,5 +1,6 @@
 package com.example.Rewaya.Service;
 
+import com.example.Rewaya.Api.ApiException;
 import com.example.Rewaya.Model.Author;
 import com.example.Rewaya.Model.User;
 import com.example.Rewaya.Repository.AuthorRepository;
@@ -28,20 +29,16 @@ public class AuthorService {
         authorRepository.save(author);
 
          //tired of email spams
-        if( !sendEmail.notifyAdmin(author) )
-         System.out.print("admin you forgot to register :p");
+       // sendEmail.notifyAdmin(author);
 
     }
 
     public List<Author> getAll(){return authorRepository.findAll();}
 
 
-    public String updateAuthor(Integer id,Author upd){
+    public void updateAuthor(Integer id,Author upd){
     Author author = authorRepository.findAuthorById(id);
-    if(author==null) return "Author not found";
-
-   // if(!author.getActive()) return "Author is not approved yet";
-        //maybe author needs to update their contact info even when they are inactive
+    if(author==null) throw new ApiException("Author not found");
 
     author.setName(upd.getName());
     author.setUsername(upd.getUsername());
@@ -51,14 +48,12 @@ public class AuthorService {
     author.setPhoneNumber(upd.getPhoneNumber());
 
     authorRepository.save(author);
-    return "updated";
     }
 
-    public boolean deleteAuthor(Integer id){
+    public void deleteAuthor(Integer id){
         Author author = authorRepository.findAuthorById(id);
-        if(author==null) return false;
+        if(author==null) throw new ApiException("Author not found");
         authorRepository.delete(author);
-        return true;
     }
 
 
@@ -83,39 +78,34 @@ public class AuthorService {
 
     //E.E.P    Activate / freeze an author
 
-    public String activateAuth(Integer admin,Integer authorId){
+    public void activateAuth(Integer admin,Integer authorId){
 
         Author auth = authorRepository.findAuthorById(authorId);
-        if(auth==null) return "author not found";
+        if(auth==null) throw new ApiException("author not found");
 
         User user = userRepository.findUserById(admin);
-        if(user==null) return "admin not found";
-        if(!user.getRole().equals("admin")) return "role not allowed to do this operation!";
+        if(user==null) throw new ApiException("admin not found");
+        if(!user.getRole().equals("admin")) throw new ApiException("role not allowed to do this operation!");
 
-        if(auth.getActive().equals(true)) return "author account is already active";
+        if(auth.getActive().equals(true)) throw new ApiException("author account is already active");
 
         auth.setActive(true);
         authorRepository.save(auth);
-
-        return "Account Activated! :)" ;
-
     }
 
-    public String freezeAuth(Integer admin,Integer authorId){
+    public void freezeAuth(Integer admin,Integer authorId){
 
         Author auth = authorRepository.findAuthorById(authorId);
-        if(auth==null) return "author not found";
+        if(auth==null) throw new ApiException("author not found");
 
         User user = userRepository.findUserById(admin);
-        if(user==null) return "admin not found";
-        if(!user.getRole().equals("admin")) return "role not allowed to do this operation!";
+        if(user==null) throw new ApiException("admin not found");
+        if(!user.getRole().equals("admin")) throw new ApiException("role not allowed to do this operation!");
 
-        if(auth.getActive().equals(false)) return "author account is already frozen";
+        if(auth.getActive().equals(false)) throw new ApiException("author account is already frozen");
 
         auth.setActive(false);
         authorRepository.save(auth);
-
-        return "Account froze successfully" ;
 
     }
 
@@ -131,7 +121,7 @@ public class AuthorService {
 
             return authorRepository.findAuthorByUsernameAndPassword(username, password);
         }
-        catch (Exception e){return null;}
+        catch (Exception e){ throw new ApiException("credential missing");}
     }
 
 }

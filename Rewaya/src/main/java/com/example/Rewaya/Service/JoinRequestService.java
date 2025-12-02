@@ -1,5 +1,6 @@
 package com.example.Rewaya.Service;
 
+import com.example.Rewaya.Api.ApiException;
 import com.example.Rewaya.Model.Author;
 import com.example.Rewaya.Model.JoinRequest;
 import com.example.Rewaya.Model.Meeting;
@@ -29,12 +30,15 @@ public class JoinRequestService {
     public String sendRequest(JoinRequest jr){
 
         Meeting meeting = meetingRepository.findMeetingById(jr.getMeetingId());
-        if(meeting==null) return "meeting not found or cancelled";
-        if(meeting.getLimitListeners()==meeting.getListeners().size()) return "this meeting is full";
+        if(meeting==null) throw new ApiException("meeting not found or cancelled");
+        if(meeting.getLimitListeners()==meeting.getListeners().size()) throw new ApiException("this meeting is full");
+        if(meeting.getStartDate().isAfter(LocalDateTime.now())) throw new ApiException("meeting is expired");
+
+
 
         User user = userRepository.findUserById(jr.getUserId());
-        if(user==null) return "log in as user";
-        if(user.getAge()<meeting.getAgeRange()) return "this meeting's age category is not suitable for your age :(";
+        if(user==null) throw new ApiException("log in as user");
+        if(user.getAge()<meeting.getAgeRange()) throw new ApiException("this meeting's age category is not suitable for your age :(");
 
         jr.setRequestTime(LocalDateTime.now());
         jr.setStatus("pending");
@@ -61,61 +65,55 @@ public class JoinRequestService {
 
     public List<JoinRequest> allJr(){return joinRequestRepository.findAll();}
 
-    public boolean updateJoinRequest(Integer id,JoinRequest edit){
+    public void updateJoinRequest(Integer id,JoinRequest edit){
         JoinRequest jr = joinRequestRepository.findJoinRequestById(id);
-        if(jr==null) return false;
+        if(jr==null) throw new ApiException("request not found");
 
 
-        jr.setMessage(edit.getMessage());
+         jr.setMessage(edit.getMessage());
          joinRequestRepository.save(jr);
-         return true;
-
     }
 
-    public boolean cancelJr(Integer id){
+    public void cancelJr(Integer id){
         JoinRequest jr = joinRequestRepository.findJoinRequestById(id);
-        if(jr==null) return false;
+        if(jr==null) throw new ApiException("request not found");
         joinRequestRepository.delete(jr);
-        return true;
     }
     //================================================= Extra End Points :
 
-    public String approveRequest(Integer jrId, Integer author){
+    public void approveRequest(Integer jrId, Integer author){
 
         JoinRequest jr = joinRequestRepository.findJoinRequestById(jrId);
-        if(jr==null) return "Join request not found or deleted";
-        if(jr.getStatus().equals("approved")) return "this request is already approve";
+        if(jr==null) throw new ApiException("Join request not found or deleted");
+        if(jr.getStatus().equals("approved")) throw new ApiException("this request is already approve");
 
         Author author1 = authorRepository.findAuthorById(author);
-        if(author1==null) return "author not found";
+        if(author1==null) throw new ApiException("author not found");
         Meeting meeting = meetingRepository.findMeetingById(jr.getMeetingId());
-        if(!author1.getId().equals(meeting.getAuthorId())) return "this meeting belongs to another author";
+        if(!author1.getId().equals(meeting.getAuthorId())) throw new ApiException("this meeting belongs to another author");
 
 
-        if(meeting.getLimitListeners()==meeting.getListeners().size()) return "this meeting is full";
+        if(meeting.getLimitListeners()==meeting.getListeners().size()) throw new ApiException("this meeting is full");
         meetingService.addListener(jr.getUserId(), jr.getMeetingId());
         jr.setStatus("approved");
         joinRequestRepository.save(jr);
         sendEmail.sendMeetingLink(jr); //send link to user
-        return "request approved";
     }
 
-    public String rejectRequest(Integer jrId, Integer author){
+    public void rejectRequest(Integer jrId, Integer author){
 
         JoinRequest jr = joinRequestRepository.findJoinRequestById(jrId);
-        if(jr==null) return "Join request not found or deleted";
-        if(jr.getStatus().equals("rejected")) return "this request is already rejected";
-        if(jr.getStatus().equals("approved")) return "you can't reject an accepted request";
+        if(jr==null) throw new ApiException( "Join request not found or deleted" );
+        if(jr.getStatus().equals("rejected")) throw new ApiException( "this request is already rejected" );
+        if(jr.getStatus().equals("approved")) throw new ApiException( "you can't reject an accepted request" );
 
         Author author1 = authorRepository.findAuthorById(author);
-        if(author1==null) return "author not found";
+        if(author1==null) throw new ApiException("author not found");
         Meeting meeting = meetingRepository.findMeetingById(jr.getMeetingId());
-        if(!author1.getId().equals(meeting.getAuthorId())) return "this meeting belongs to another author";
+        if(!author1.getId().equals(meeting.getAuthorId())) throw new ApiException("this meeting belongs to another author");
 
         jr.setStatus("rejected");
         joinRequestRepository.save(jr);
-
-        return "request set rejected";
     }
 
 
